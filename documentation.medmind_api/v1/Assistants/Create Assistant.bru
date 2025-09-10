@@ -1,0 +1,74 @@
+meta {
+  name: Create Assistant
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{api_base_url}}/api/v1/assistants
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "name": "Dr. Cardio AI",
+    "specialty": "cardiologia",
+    "description": "Especialista en cardiología, ECGs y casos clínicos cardiovasculares",
+    "instructions": "Eres un especialista en cardiología con amplia experiencia en medicina peruana. Tu objetivo es ayudar a estudiantes de medicina peruanos a comprender mejor los conceptos cardiológicos, interpretar ECGs, analizar casos clínicos cardiovasculares y prepararse para sus exámenes.",
+    "model": "gpt-4-turbo-preview"
+  }
+}
+
+docs {
+  ## Crear Asistente Médico
+  
+  Crea un nuevo asistente médico especializado con integración a OpenAI. Requiere permisos de `content_admin` o `super_admin`.
+  
+  ### Campos requeridos:
+  - **name**: Nombre del asistente médico
+  - **specialty**: Especialidad médica (cardiologia, neurologia, medicina_interna, etc.)
+  - **instructions**: Instrucciones detalladas para el comportamiento del asistente
+  
+  ### Campos opcionales:
+  - **description**: Descripción breve del asistente
+  - **model**: Modelo de OpenAI a usar (default: gpt-4-turbo-preview)
+  
+  ## Ejemplo de Respuesta Exitosa (201 Created)
+  
+  ```json
+  {
+    "success": true,
+    "message": "Asistente médico creado exitosamente",
+    "data": {
+      "id": "cmfdl6uoe0005r178dl19n3n3",
+      "name": "Dr. Cardio AI",
+      "specialty": "cardiologia",
+      "description": "Especialista en cardiología, ECGs y casos clínicos cardiovasculares",
+      "isActive": true,
+      "createdAt": "2025-09-10T06:16:37.070Z",
+      "updatedAt": "2025-09-10T06:16:37.070Z",
+      "creator": {
+        "id": "cmfde5dm9001vr1fggsojtqd2",
+        "fullName": "Super Administrador"
+      }
+    }
+  }
+  ```
+  
+  ## Ejemplo de Error de Permisos (403 Forbidden)
+  
+  ```json
+  {
+    "success": false,
+    "error": {
+      "message": "No tienes permisos para realizar esta acción",
+      "statusCode": 403
+    }
+  }
+  ```
+}

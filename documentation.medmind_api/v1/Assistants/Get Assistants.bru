@@ -1,0 +1,51 @@
+meta {
+  name: Get Assistants
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{api_base_url}}/api/v1/assistants
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+docs {
+  ## Obtener Lista de Asistentes
+  
+  Obtiene la lista de asistentes médicos disponibles. Por defecto solo muestra asistentes activos.
+  
+  ### Query Parameters (opcionales):
+  - **includeInactive**: true/false - Incluir asistentes inactivos
+  
+  ## Ejemplo de Respuesta Exitosa (200 OK)
+  
+  ```json
+  {
+    "success": true,
+    "message": "Lista de asistentes médicos obtenida",
+    "data": [
+      {
+        "id": "cmfdl6uoe0005r178dl19n3n3",
+        "name": "Dr. Cardio AI Real",
+        "specialty": "cardiologia",
+        "description": "Especialista en cardiología, ECGs y casos clínicos cardiovasculares",
+        "isActive": true,
+        "createdAt": "2025-09-10T06:16:37.070Z"
+      },
+      {
+        "id": "cmfdl7idu0007r178tafwnslt",
+        "name": "Dra. Neuro AI Real",
+        "specialty": "neurologia",
+        "description": "Especialista en neurología, casos neurológicos y examen neurológico",
+        "isActive": true,
+        "createdAt": "2025-09-10T06:17:07.794Z"
+      }
+    ]
+  }
+  ```
+}
