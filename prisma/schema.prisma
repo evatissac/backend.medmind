@@ -1,0 +1,235 @@
+// MedMind - Plataforma Educativa Médica
+// Base de datos con esquemas organizados para escalabilidad
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public", "auth", "core", "messages"]
+}
+
+// ============================================================================
+// ESQUEMA AUTH - Gestión de usuarios, roles y permisos
+// ============================================================================
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  fullName     String   @map("full_name")
+  
+  // Campos específicos de estudiantes
+  university             String?
+  semester               Int?
+  subscriptionStatus     SubscriptionStatus @default(TRIAL) @map("subscription_status")
+  subscriptionExpiresAt  DateTime?         @map("subscription_expires_at")
+  totalTokensUsed        Int               @default(0) @map("total_tokens_used")
+  
+  // Campos comunes
+  isActive          Boolean   @default(true) @map("is_active")
+  emailVerifiedAt   DateTime? @map("email_verified_at")
+  lastLoginAt       DateTime? @map("last_login_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  // Relaciones
+  userRoles         UserRole[]
+  conversations     Conversation[]
+  createdAssistants Assistant[] @relation("CreatedAssistants")
+  uploadedFiles     AssistantFile[]
+  assignedRoles     UserRole[] @relation("AssignedBy")
+
+  @@map("users")
+  @@schema("auth")
+}
+
+model Role {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  displayName  String   @map("display_name")
+  description  String?
+  isSystemRole Boolean  @default(false) @map("is_system_role")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relaciones
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@map("roles")
+  @@schema("auth")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relaciones
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+  @@schema("auth")
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String   @map("role_id")
+  permissionId String   @map("permission_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relaciones
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+  @@schema("auth")
+}
+
+model UserRole {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  roleId     String    @map("role_id")
+  assignedBy String?   @map("assigned_by")
+  assignedAt DateTime  @default(now()) @map("assigned_at")
+  expiresAt  DateTime? @map("expires_at")
+  isActive   Boolean   @default(true) @map("is_active")
+
+  // Relaciones
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     Role  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assigner User? @relation("AssignedBy", fields: [assignedBy], references: [id])
+
+  @@unique([userId, roleId])
+  @@map("user_roles")
+  @@schema("auth")
+}
+
+// ============================================================================
+// ESQUEMA CORE - Asistentes médicos y archivos de conocimiento
+// ============================================================================
+
+model Assistant {
+  id                String   @id @default(cuid())
+  name              String
+  specialty         String
+  openaiAssistantId String   @map("openai_assistant_id")
+  instructions      String?
+  description       String?
+  isActive          Boolean  @default(true) @map("is_active")
+  createdBy         String?  @map("created_by")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  creator       User?           @relation("CreatedAssistants", fields: [createdBy], references: [id])
+  files         AssistantFile[]
+  conversations Conversation[]
+
+  @@map("assistants")
+  @@schema("core")
+}
+
+model AssistantFile {
+  id               String   @id @default(cuid())
+  assistantId      String   @map("assistant_id")
+  openaiFileId     String   @map("openai_file_id")
+  originalFilename String   @map("original_filename")
+  fileSizeBytes    Int?     @map("file_size_bytes")
+  uploadDate       DateTime @default(now()) @map("upload_date")
+  uploadedBy       String?  @map("uploaded_by")
+
+  // Relaciones
+  assistant Assistant @relation(fields: [assistantId], references: [id], onDelete: Cascade)
+  uploader  User?     @relation(fields: [uploadedBy], references: [id])
+
+  @@map("assistant_files")
+  @@schema("core")
+}
+
+// ============================================================================
+// ESQUEMA MESSAGES - Conversaciones y mensajes
+// ============================================================================
+
+model Conversation {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  assistantId     String?  @map("assistant_id")
+  title           String?
+  openaiThreadId  String   @map("openai_thread_id")
+  lastMessageAt   DateTime @default(now()) @map("last_message_at")
+  totalMessages   Int      @default(0) @map("total_messages")
+  totalTokensUsed Int      @default(0) @map("total_tokens_used")
+  isArchived      Boolean  @default(false) @map("is_archived")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relaciones
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assistant Assistant?  @relation(fields: [assistantId], references: [id])
+  messages  Message[]
+
+  @@map("conversations")
+  @@schema("messages")
+}
+
+model Message {
+  id               String       @id @default(cuid())
+  conversationId   String       @map("conversation_id")
+  role             MessageRole
+  content          String
+  openaiMessageId  String?      @map("openai_message_id")
+  inputTokens      Int          @default(0) @map("input_tokens")
+  outputTokens     Int          @default(0) @map("output_tokens")
+  costUsd          Decimal      @default(0) @map("cost_usd") @db.Decimal(8, 4)
+  isEdited         Boolean      @default(false) @map("is_edited")
+  editedAt         DateTime?    @map("edited_at")
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  // Relaciones
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  edits        MessageEdit[]
+
+  @@map("messages")
+  @@schema("messages")
+}
+
+model MessageEdit {
+  id              String   @id @default(cuid())
+  messageId       String   @map("message_id")
+  originalContent String   @map("original_content")
+  editedContent   String   @map("edited_content")
+  editedAt        DateTime @default(now()) @map("edited_at")
+
+  // Relaciones
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("message_edits")
+  @@schema("messages")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  INACTIVE
+  EXPIRED
+
+  @@schema("auth")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+
+  @@schema("messages")
+}
