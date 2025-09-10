@@ -1,0 +1,36 @@
+meta {
+  name: Me
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{api_base_url}}/api/v1/auth/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+docs {
+  ## Ejemplo de Respuesta Exitosa (200 OK)
+
+  ```json
+  {
+    "message": "Información del usuario obtenida",
+    "data": {
+        "user": {
+            "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+            "email": "test@example.com",
+            "fullName": "Test User",
+            "roles": [
+                "student"
+            ],
+            "permissions": []
+        }
+    }
+  }
+  ```
+}

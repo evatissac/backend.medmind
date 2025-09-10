@@ -1,0 +1,36 @@
+meta {
+  name: Validate
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{api_base_url}}/api/v1/auth/validate
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+docs {
+  ## Ejemplo de Respuesta Exitosa (200 OK)
+
+  ```json
+  {
+    "message": "Token válido",
+    "data": {
+        "valid": true,
+        "user": {
+            "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+            "email": "test@example.com",
+            "fullName": "Test User",
+            "roles": [
+                "student"
+            ]
+        }
+    }
+  }
+  ```
+}
