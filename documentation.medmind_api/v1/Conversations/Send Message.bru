@@ -1,0 +1,110 @@
+meta {
+  name: Send Message
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{api_base_url}}/api/v1/conversations/{{conversation_id}}/messages
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "content": "ASí? QUe mas"
+  }
+}
+
+vars:pre-request {
+  conversation_id: cmfdleqhx0001r1gsrj8myhdl
+}
+
+docs {
+  ## Enviar Mensaje
+  
+  Envía un mensaje a una conversación existente y obtiene la respuesta del asistente médico a través de OpenAI.
+  
+  ### Parámetros de URL:
+  - **conversationId**: ID de la conversación a la que se enviará el mensaje
+  
+  ### Campos requeridos:
+  - **content**: Contenido del mensaje a enviar
+  
+  ### Limitaciones:
+  - Respeta los límites de tokens según el tipo de suscripción del usuario
+  - No se pueden enviar mensajes a conversaciones archivadas
+  - Solo el propietario de la conversación puede enviar mensajes
+  
+  ## Ejemplo de Respuesta Exitosa (200 OK)
+  
+  ```json
+  {
+    "success": true,
+    "message": "Mensaje enviado exitosamente",
+    "data": {
+      "userMessage": {
+        "id": "cmfdlfltb0003r1gs8w0aktor",
+        "role": "USER",
+        "content": "Hola Doctor, soy estudiante de medicina en Lima. ¿Podrías explicarme qué es la fibrilación auricular?",
+        "inputTokens": 210,
+        "outputTokens": 0,
+        "costUsd": 0,
+        "isEdited": false,
+        "editedAt": null,
+        "createdAt": "2025-09-10T06:23:25.487Z"
+      },
+      "assistantMessage": {
+        "id": "cmfdlfm0i0005r1gs9319pqk7",
+        "role": "ASSISTANT",
+        "content": "Hola, claro que sí, me alegra que estés interesado en profundizar tus conocimientos en cardiología. La fibrilación auricular (FA) es una arritmia cardíaca muy común...",
+        "inputTokens": 0,
+        "outputTokens": 709,
+        "costUsd": 0.0234,
+        "isEdited": false,
+        "editedAt": null,
+        "createdAt": "2025-09-10T06:23:25.747Z"
+      },
+      "conversation": {
+        "id": "cmfdleqhx0001r1gsrj8myhdl",
+        "totalMessages": 2,
+        "totalTokensUsed": 919
+      },
+      "usage": {
+        "promptTokens": 210,
+        "completionTokens": 709,
+        "totalTokens": 919,
+        "costUsd": 0.02337
+      }
+    }
+  }
+  ```
+  
+  ## Ejemplo de Error - Límite de tokens excedido (400 Bad Request)
+  
+  ```json
+  {
+    "success": false,
+    "error": {
+      "message": "Has excedido tu límite de tokens. Upgrade tu suscripción para continuar.",
+      "statusCode": 400
+    }
+  }
+  ```
+  
+  ## Ejemplo de Error - Conversación archivada (400 Bad Request)
+  
+  ```json
+  {
+    "success": false,
+    "error": {
+      "message": "No se pueden enviar mensajes a una conversación archivada",
+      "statusCode": 400
+    }
+  }
+  ```
+}

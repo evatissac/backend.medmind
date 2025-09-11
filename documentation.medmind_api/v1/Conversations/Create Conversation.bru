@@ -1,0 +1,75 @@
+meta {
+  name: Create Conversation
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{api_base_url}}/api/v1/conversations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "assistantId": "cmfdl6uoe0005r178dl19n3n3",
+    "title": "Consulta de Cardiología"
+  }
+}
+
+vars:post-response {
+  conversation_id: res.body.data.id
+}
+
+docs {
+  ## Crear Nueva Conversación
+  
+  Inicia una nueva conversación con un asistente médico específico. Crea automáticamente un thread en OpenAI.
+  
+  ### Campos requeridos:
+  - **assistantId**: ID del asistente médico con el que se quiere conversar
+  
+  ### Campos opcionales:
+  - **title**: Título personalizado para la conversación (se auto-genera si no se proporciona)
+  
+  ## Ejemplo de Respuesta Exitosa (201 Created)
+  
+  ```json
+  {
+    "success": true,
+    "message": "Conversación creada exitosamente",
+    "data": {
+      "id": "cmfdl8ly3000br178g0j1b2ho",
+      "title": "Consulta de Cardiología",
+      "lastMessageAt": "2025-09-10T06:17:59.067Z",
+      "totalMessages": 0,
+      "totalTokensUsed": 0,
+      "isArchived": false,
+      "createdAt": "2025-09-10T06:17:59.067Z",
+      "assistant": {
+        "id": "cmfdl6uoe0005r178dl19n3n3",
+        "name": "Dr. Cardio AI Real",
+        "specialty": "cardiologia",
+        "description": "Especialista en cardiología, ECGs y casos clínicos cardiovasculares"
+      },
+      "messages": []
+    }
+  }
+  ```
+  
+  ## Ejemplo de Error - Asistente no encontrado (404 Not Found)
+  
+  ```json
+  {
+    "success": false,
+    "error": {
+      "message": "Asistente no encontrado o inactivo",
+      "statusCode": 404
+    }
+  }
+  ```
+}

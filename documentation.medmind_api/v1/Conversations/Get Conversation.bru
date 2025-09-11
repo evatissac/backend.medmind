@@ -1,0 +1,84 @@
+meta {
+  name: Get Conversation
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{api_base_url}}/api/v1/conversations/{{conversation_id}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  conversation_id: cmfdleqhx0001r1gsrj8myhdl
+}
+
+docs {
+  ## Obtener Conversación Específica
+  
+  Obtiene los detalles completos de una conversación, incluyendo todos los mensajes.
+  
+  ### Parámetros de URL:
+  - **conversationId**: ID de la conversación a obtener
+  
+  ## Ejemplo de Respuesta Exitosa (200 OK)
+  
+  ```json
+  {
+    "success": true,
+    "message": "Conversación obtenida",
+    "data": {
+      "id": "cmfdl8ly3000br178g0j1b2ho",
+      "title": "Consulta de Cardiología",
+      "lastMessageAt": "2025-09-10T06:25:30.147Z",
+      "totalMessages": 2,
+      "totalTokensUsed": 919,
+      "isArchived": false,
+      "createdAt": "2025-09-10T06:17:59.067Z",
+      "assistant": {
+        "id": "cmfdl6uoe0005r178dl19n3n3",
+        "name": "Dr. Cardio AI Real",
+        "specialty": "cardiologia",
+        "description": "Especialista en cardiología, ECGs y casos clínicos cardiovasculares"
+      },
+      "messages": [
+        {
+          "id": "cmfdlfltb0003r1gs8w0aktor",
+          "role": "USER",
+          "content": "Hola Doctor, soy estudiante de medicina en Lima. ¿Podrías explicarme qué es la fibrilación auricular?",
+          "inputTokens": 210,
+          "outputTokens": 0,
+          "costUsd": 0,
+          "isEdited": false,
+          "editedAt": null,
+          "createdAt": "2025-09-10T06:23:25.487Z"
+        },
+        {
+          "id": "cmfdlfm0i0005r1gs9319pqk7",
+          "role": "ASSISTANT",
+          "content": "Hola, claro que sí, me alegra que estés interesado en profundizar...",
+          "inputTokens": 0,
+          "outputTokens": 709,
+          "costUsd": 0.0234,
+          "isEdited": false,
+          "editedAt": null,
+          "createdAt": "2025-09-10T06:23:25.747Z"
+        }
+      ]
+    }
+  }
+  ```
+  
+  ## Ejemplo de Error - Conversación no encontrada (404 Not Found)
+  
+  ```json
+  {
+    "success": false,
+    "error": {
+      "message": "Conversación no encontrada",
+      "statusCode": 404
+    }
+  }
+  ```
+}
