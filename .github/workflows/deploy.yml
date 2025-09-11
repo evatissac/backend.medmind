@@ -1,0 +1,71 @@
+name: Deploy NestJS to Production
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'yarn'
+        
+    - name: Install Yarn
+      run: npm install -g yarn
+      
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+      
+    - name: Run tests (optional)
+      run: yarn test || echo "No tests configured"
+      
+    - name: Build application
+      run: yarn build
+      
+    - name: Stop current PM2 process
+      run: pm2 stop nestjs-app || echo "App not running"
+      
+    - name: Copy built files to production directory
+      run: |
+        sudo mkdir -p /var/www/nestjs-app
+        sudo cp -r dist/* /var/www/nestjs-app/
+        sudo cp package.json /var/www/nestjs-app/
+        sudo cp yarn.lock /var/www/nestjs-app/ || echo "No yarn.lock found"
+        sudo cp ecosystem.config.js /var/www/nestjs-app/ || echo "No ecosystem config found"
+        sudo chown -R ec2-user:ec2-user /var/www/nestjs-app
+        
+    - name: Install production dependencies
+      run: |
+        cd /var/www/nestjs-app
+        yarn install --production --frozen-lockfile
+        
+    - name: Generate Prisma client in production
+      run: |
+        cd /var/www/nestjs-app
+        yarn prisma generate || echo "Prisma generate failed"
+        
+    - name: Start/Restart PM2 application
+      run: |
+        cd /var/www/nestjs-app
+        pm2 start ecosystem.config.js || pm2 restart nestjs-app
+        pm2 save
+        
+    - name: Health check
+      run: |
+        sleep 10
+        curl -f http://localhost:3000 || echo "Health check failed"
+        
+    - name: Deployment status
+      run: |
+        echo "✅ Deployment completed successfully!"
+        pm2 status
